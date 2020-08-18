@@ -9,3 +9,4 @@ An experimental personal filehost, deployed to netlify.
 - [ ] Uploading "root-level" files to netlify
 - [ ] Recursive folder watching
 - [ ] FUSE (syncing bidirectionally...)
+- [ ] potential FUSE "lazy loading"??

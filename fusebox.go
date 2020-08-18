@@ -9,14 +9,16 @@ import (
 )
 
 type fusebox struct {
-	path    string
-	done    chan bool
-	watcher *fsnotify.Watcher
+	path       string
+	done       chan bool
+	watcher    *fsnotify.Watcher
+	filedigest *digest
 }
 
 func newFusebox(path string) *fusebox {
 	fb := fusebox{path: path}
 	fb.done = make(chan bool)
+	fb.filedigest = newDigest()
 
 	var err error
 	fb.watcher, err = fsnotify.NewWatcher()
@@ -24,6 +26,7 @@ func newFusebox(path string) *fusebox {
 		log.Fatal(err)
 	}
 	setupDirectory(path)
+	fb.filedigest.resetWithPath(path)
 
 	err = fb.watcher.Add(path)
 	if err != nil {
@@ -74,6 +77,14 @@ func (fb fusebox) watch() {
 func (fb fusebox) Stop() {
 	fb.watcher.Close()
 	fb.done <- true
+}
+
+func (fb fusebox) Start() {
+	var err error
+	fb.watcher, err = fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (fb fusebox) debug() {
