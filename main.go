@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"os"
 	"os/user"
 	"path"
 
@@ -22,40 +21,9 @@ func main() {
 	defer watcher.Close()
 
 	done := make(chan bool)
-	go func() {
-		for {
-			select {
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-				log.Println("event:", event)
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					log.Println("modified file:", event.Name)
-				}
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
-				log.Println("error:", err)
-			}
-		}
-	}()
 
-	_, err = os.Stat(*fuseboxPath)
-	if os.IsNotExist(err) {
-		err = os.Mkdir(*fuseboxPath, 0777) // make dir as a directory (perm 1<<31)
-		log.Printf("Creating directory %s \n", *fuseboxPath)
-		if err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		log.Printf("Using existant directory %s \n", *fuseboxPath)
-	}
+	fb := newFusebox(*fuseboxPath)
+	fb.debug()
 
-	err = watcher.Add(*fuseboxPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	<-done
+	<-done // blockhing channel read, program runs indefinitely
 }
