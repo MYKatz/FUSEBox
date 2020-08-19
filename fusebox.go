@@ -27,6 +27,7 @@ func newFusebox(path string) *fusebox {
 	}
 	setupDirectory(path)
 	fb.filedigest.resetWithPath(path)
+	fmt.Println(fb.filedigest.json())
 
 	err = fb.watcher.Add(path)
 	if err != nil {

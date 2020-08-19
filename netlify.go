@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -40,6 +41,20 @@ func (d digest) resetWithPath(path string) {
 	}
 
 	fmt.Println(d)
+}
+
+func (d digest) json() string {
+	out := make(map[string]map[string]string)
+	out["files"] = make(map[string]string)
+	for key, val := range d.files {
+		out["files"][key.relative] = val
+	}
+	j, err := json.Marshal(out)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return string(j)
 }
 
 func hashFile(filepath string) (string, error) {
