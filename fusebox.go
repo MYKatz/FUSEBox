@@ -13,9 +13,10 @@ type fusebox struct {
 	done       chan bool
 	watcher    *fsnotify.Watcher
 	filedigest *digest
+	netlify    *netlifySite
 }
 
-func newFusebox(path string) *fusebox {
+func newFusebox(path string, siteID string, netlifyToken string) *fusebox {
 	fb := fusebox{path: path}
 	fb.done = make(chan bool)
 	fb.filedigest = newDigest()
@@ -28,6 +29,8 @@ func newFusebox(path string) *fusebox {
 	setupDirectory(path)
 	fb.filedigest.resetWithPath(path)
 	fmt.Println(fb.filedigest.json())
+
+	fb.netlify = &netlifySite{siteID: siteID, accessKey: netlifyToken}
 
 	err = fb.watcher.Add(path)
 	if err != nil {

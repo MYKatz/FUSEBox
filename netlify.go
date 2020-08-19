@@ -1,15 +1,20 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 )
+
+const netlifyApiURL = "https://api.netlify.com/api/v1/"
 
 type fpath struct {
 	absolute string
@@ -19,6 +24,16 @@ type fpath struct {
 type digest struct {
 	files    map[fpath]string
 	inverted map[string]fpath
+}
+
+type netlifySite struct {
+	accessKey string
+	siteID    string
+}
+
+type netlifyResponse struct {
+	ID       string   `json:"id"`
+	Required []string `json:"required"`
 }
 
 func newDigest() *digest {
@@ -107,4 +122,30 @@ func filesInFolder(folder string) []fpath {
 	}
 
 	return files
+}
+
+func (ns netlifySite) sendDigest(digest string) (string, error) {
+	var response string
+	requestURL := fmt.Sprintf("%ssites/%s/deploys", netlifyApiURL, ns.siteID)
+	req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer([]byte(digest)))
+	if err != nil {
+		return response, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", ns.accessKey))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return response, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return response, err
+	}
+
+	response = string(body)
+	return response, nil
 }
