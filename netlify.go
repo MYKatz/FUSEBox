@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 )
 
-const netlifyApiURL = "https://api.netlify.com/api/v1/"
+const netlifyAPIURL = "https://api.netlify.com/api/v1/"
 
 type fpath struct {
 	absolute string
@@ -126,7 +126,7 @@ func filesInFolder(folder string) []fpath {
 
 func (ns netlifySite) sendDigest(digest string) (string, error) {
 	var response string
-	requestURL := fmt.Sprintf("%ssites/%s/deploys", netlifyApiURL, ns.siteID)
+	requestURL := fmt.Sprintf("%ssites/%s/deploys", netlifyAPIURL, ns.siteID)
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer([]byte(digest)))
 	if err != nil {
 		return response, err

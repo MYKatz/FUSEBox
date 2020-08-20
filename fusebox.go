@@ -31,6 +31,8 @@ func newFusebox(path string, siteID string, netlifyToken string) *fusebox {
 	fmt.Println(fb.filedigest.json())
 
 	fb.netlify = &netlifySite{siteID: siteID, accessKey: netlifyToken}
+	res, _ := fb.netlify.sendDigest(fb.filedigest.json())
+	fmt.Println(res)
 
 	err = fb.watcher.Add(path)
 	if err != nil {
