@@ -28,11 +28,8 @@ func newFusebox(path string, siteID string, netlifyToken string) *fusebox {
 	}
 	setupDirectory(path)
 	fb.filedigest.resetWithPath(path)
-	fmt.Println(fb.filedigest.json())
 
 	fb.netlify = &netlifySite{siteID: siteID, accessKey: netlifyToken}
-	res, _ := fb.netlify.sendDigest(fb.filedigest.json())
-	fmt.Println(res)
 
 	err = fb.watcher.Add(path)
 	if err != nil {
@@ -95,4 +92,17 @@ func (fb fusebox) Start() {
 
 func (fb fusebox) debug() {
 	fmt.Printf("{path: %s} \n", fb.path)
+}
+
+func (fb fusebox) update() {
+	fb.filedigest.resetWithPath(fb.path)
+	res, _ := fb.netlify.sendDigest(fb.filedigest.json())
+	for _, fingerprint := range res.Required {
+		if val, ok := fb.filedigest.inverted[fingerprint]; ok {
+			err := fb.netlify.putFile(res.ID, val)
+			if err != nil {
+				log.Fatal(err) // TODO: fail gracefully
+			}
+		}
+	}
 }

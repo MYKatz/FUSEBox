@@ -124,8 +124,8 @@ func filesInFolder(folder string) []fpath {
 	return files
 }
 
-func (ns netlifySite) sendDigest(digest string) (string, error) {
-	var response string
+func (ns netlifySite) sendDigest(digest string) (netlifyResponse, error) {
+	var response netlifyResponse
 	requestURL := fmt.Sprintf("%ssites/%s/deploys", netlifyAPIURL, ns.siteID)
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer([]byte(digest)))
 	if err != nil {
@@ -146,6 +146,32 @@ func (ns netlifySite) sendDigest(digest string) (string, error) {
 		return response, err
 	}
 
-	response = string(body)
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return response, err
+	}
 	return response, nil
+}
+
+func (ns netlifySite) putFile(digestID string, path fpath) error {
+	requestURL := fmt.Sprintf("%sdeploys/%s/files/%s", netlifyAPIURL, digestID, path.relative)
+	data, err := os.Open(path.absolute)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	req, err := http.NewRequest("PUT", requestURL, data)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/octet-stream")
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	res.Body.Close()
+	return nil
 }
