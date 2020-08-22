@@ -167,11 +167,17 @@ func (ns netlifySite) putFile(digestID string, path fpath) error {
 	}
 
 	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", ns.accessKey))
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
 		return err
 	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	log.Println(string(body))
+
 	res.Body.Close()
 	return nil
 }

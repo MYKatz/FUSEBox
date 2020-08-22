@@ -68,6 +68,7 @@ func (fb fusebox) watch() {
 			if event.Op&fsnotify.Write == fsnotify.Write {
 				log.Println("modified file:", event.Name)
 			}
+			fb.update() // TODO: make this better
 		case err, ok := <-fb.watcher.Errors:
 			if !ok {
 				return
